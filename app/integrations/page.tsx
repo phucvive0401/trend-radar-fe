@@ -158,7 +158,7 @@ export default function IntegrationsPage() {
     return integration.category === selectedCategory;
   });
 
-  const categories = Array.from(new Set(availableIntegrations.map(i => i.category)));
+  const categories = [...new Set(availableIntegrations.map(i => i.category))];
 
   return (
     <div className="space-y-6">
