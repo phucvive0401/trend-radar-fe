@@ -138,7 +138,7 @@ export default function BillingPage() {
           <CardContent className="flex items-center justify-center h-64">
             <div className="text-center">
               <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">You don't have permission to manage billing.</p>
+              <p className="text-muted-foreground">You don&apos;t have permission to manage billing.</p>
             </div>
           </CardContent>
         </Card>
