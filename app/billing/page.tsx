@@ -52,7 +52,7 @@ const plans = [
     description: 'Advanced features for growing businesses',
     features: [
       'Up to 15 integrations',
-      'Advanced analytics & forecasting',
+      'Advanced analytics &amp; forecasting',
       '10,000 API calls/month',
       'Priority support',
       '30-day data retention',
@@ -77,7 +77,7 @@ const plans = [
       'Unlimited API calls',
       '24/7 dedicated support',
       'Unlimited data retention',
-      'Custom reports & dashboards',
+      'Custom reports &amp; dashboards',
       'Unlimited team members',
       'Advanced A/B testing',
       'White-label options',
@@ -133,7 +133,7 @@ export default function BillingPage() {
   if (!permissions.canManageBilling) {
     return (
       <div className="space-y-6">
-        <Header title="Billing & Plans" subtitle="Access denied" />
+        <Header title="Billing &amp; Plans" subtitle="Access denied" />
         <Card>
           <CardContent className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -159,7 +159,7 @@ export default function BillingPage() {
   return (
     <div className="space-y-6">
       <Header 
-        title="Billing & Plans" 
+        title="Billing &amp; Plans"
         subtitle="Manage your subscription and billing information"
       />
       
@@ -167,7 +167,7 @@ export default function BillingPage() {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="current">Current Plan</TabsTrigger>
           <TabsTrigger value="plans">Upgrade Plans</TabsTrigger>
-          <TabsTrigger value="usage">Usage & Limits</TabsTrigger>
+          <TabsTrigger value="usage">Usage &amp; Limits</TabsTrigger>
           <TabsTrigger value="invoices">Billing History</TabsTrigger>
         </TabsList>
 
@@ -317,10 +317,10 @@ export default function BillingPage() {
                       {currentPlan.usage.apiCalls.used.toLocaleString()} / {currentPlan.usage.apiCalls.limit.toLocaleString()}
                     </span>
                   </div>
-                  <Progress 
+                  {/* <Progress 
                     value={getUsagePercentage(currentPlan.usage.apiCalls.used, currentPlan.usage.apiCalls.limit)} 
                     className="h-2"
-                  />
+                  /> */}
                   <p className="text-xs text-muted-foreground">
                     {Math.round(getUsagePercentage(currentPlan.usage.apiCalls.used, currentPlan.usage.apiCalls.limit))}% used
                   </p>
@@ -343,10 +343,10 @@ export default function BillingPage() {
                       {currentPlan.usage.integrations.used} / {currentPlan.usage.integrations.limit}
                     </span>
                   </div>
-                  <Progress 
+                  {/* <Progress 
                     value={getUsagePercentage(currentPlan.usage.integrations.used, currentPlan.usage.integrations.limit)} 
                     className="h-2"
-                  />
+                  /> */}
                   <p className="text-xs text-muted-foreground">
                     {Math.round(getUsagePercentage(currentPlan.usage.integrations.used, currentPlan.usage.integrations.limit))}% used
                   </p>
@@ -369,10 +369,10 @@ export default function BillingPage() {
                       {currentPlan.usage.users.used} / {currentPlan.usage.users.limit}
                     </span>
                   </div>
-                  <Progress 
+                  {/* <Progress 
                     value={getUsagePercentage(currentPlan.usage.users.used, currentPlan.usage.users.limit)} 
                     className="h-2"
-                  />
+                  /> */}
                   <p className="text-xs text-muted-foreground">
                     {Math.round(getUsagePercentage(currentPlan.usage.users.used, currentPlan.usage.users.limit))}% used
                   </p>
@@ -395,10 +395,10 @@ export default function BillingPage() {
                       {currentPlan.usage.storage.used} GB / {currentPlan.usage.storage.limit} GB
                     </span>
                   </div>
-                  <Progress 
+                  {/* <Progress 
                     value={getUsagePercentage(currentPlan.usage.storage.used, currentPlan.usage.storage.limit)} 
                     className="h-2"
-                  />
+                  /> */}
                   <p className="text-xs text-muted-foreground">
                     {Math.round(getUsagePercentage(currentPlan.usage.storage.used, currentPlan.usage.storage.limit))}% used
                   </p>
