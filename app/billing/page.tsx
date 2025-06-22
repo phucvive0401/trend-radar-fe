@@ -93,7 +93,7 @@ const currentPlan = {
   name: 'Professional',
   price: '$79',
   period: '/month',
-  nextBilling: new Date('2024-02-15'),
+  nextBilling: '2024-02-15',
   usage: {
     integrations: { used: 8, limit: 15 },
     apiCalls: { used: 6420, limit: 10000 },
@@ -105,21 +105,21 @@ const currentPlan = {
 const invoices = [
   {
     id: 'INV-2024-001',
-    date: new Date('2024-01-15'),
+    date: '2024-01-15',
     amount: '$79.00',
     status: 'paid',
     plan: 'Professional',
   },
   {
     id: 'INV-2023-012',
-    date: new Date('2023-12-15'),
+    date: '2023-12-15',
     amount: '$79.00',
     status: 'paid',
     plan: 'Professional',
   },
   {
     id: 'INV-2023-011',
-    date: new Date('2023-11-15'),
+    date: '2023-11-15',
     amount: '$29.00',
     status: 'paid',
     plan: 'Starter',
@@ -196,7 +196,7 @@ export default function BillingPage() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Next billing date</span>
                       <span className="font-medium">
-                        {currentPlan.nextBilling.toLocaleDateString()}
+                        {new Date(currentPlan.nextBilling).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
@@ -427,7 +427,7 @@ export default function BillingPage() {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {invoice.date.toLocaleDateString()}
+                          {new Date(invoice.date).toLocaleDateString()}
                         </span>
                         <span>{invoice.plan} Plan</span>
                       </div>
