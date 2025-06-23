@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 import { 
   MessageCircle, 
   Send, 
@@ -23,7 +24,17 @@ import {
   ThumbsDown,
   RefreshCw,
   Mic,
-  Image as ImageIcon
+  Image as ImageIcon,
+  FileText,
+  Download,
+  Share2,
+  Bookmark,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  Brain,
+  Target,
+  Lightbulb
 } from 'lucide-react';
 
 interface Message {
@@ -39,6 +50,10 @@ interface Message {
   deepDiveLink?: string;
   streaming?: boolean;
   suggestions?: string[];
+  confidence?: number;
+  sources?: string[];
+  actionItems?: string[];
+  isTyping?: boolean;
 }
 
 const sampleQuestions = [
@@ -47,29 +62,40 @@ const sampleQuestions = [
   "Which products have the highest engagement rate?",
   "What's the sentiment analysis for #SustainableFashion?",
   "Compare TikTok vs Instagram performance",
-  "Show me the forecast for next month's trends"
+  "Show me the forecast for next month's trends",
+  "Analyze competitor pricing strategies",
+  "What's the best time to post for maximum engagement?",
+  "Generate content ideas for sustainable fashion",
+  "Show ROI analysis for recent campaigns"
+];
+
+const quickActions = [
+  { icon: TrendingUp, label: "Trend Analysis", query: "Show me the latest trending hashtags with growth analysis" },
+  { icon: BarChart3, label: "Performance Report", query: "Generate a comprehensive performance report for this week" },
+  { icon: Target, label: "Campaign Ideas", query: "Suggest campaign ideas based on current trends" },
+  { icon: Lightbulb, label: "Content Strategy", query: "Help me develop a content strategy for next month" }
 ];
 
 const mockChartData = {
   line: {
     title: "Revenue Trend (Last 7 Days)",
     data: [
-      { day: 'Mon', revenue: 4200 },
-      { day: 'Tue', revenue: 3800 },
-      { day: 'Wed', revenue: 5200 },
-      { day: 'Thu', revenue: 4900 },
-      { day: 'Fri', revenue: 6100 },
-      { day: 'Sat', revenue: 5800 },
-      { day: 'Sun', revenue: 4600 }
+      { day: 'Mon', revenue: 4200, searches: 1200 },
+      { day: 'Tue', revenue: 3800, searches: 1100 },
+      { day: 'Wed', revenue: 5200, searches: 1500 },
+      { day: 'Thu', revenue: 4900, searches: 1400 },
+      { day: 'Fri', revenue: 6100, searches: 1800 },
+      { day: 'Sat', revenue: 5800, searches: 1700 },
+      { day: 'Sun', revenue: 4600, searches: 1300 }
     ]
   },
   bar: {
     title: "Top Hashtags Performance",
     data: [
-      { hashtag: '#SustainableFashion', posts: 2400 },
-      { hashtag: '#TechGadgets', posts: 1800 },
-      { hashtag: '#HomeDecor', posts: 1500 },
-      { hashtag: '#Fitness', posts: 1200 }
+      { hashtag: '#SustainableFashion', posts: 2400, engagement: 8.4 },
+      { hashtag: '#TechGadgets', posts: 1800, engagement: 6.2 },
+      { hashtag: '#HomeDecor', posts: 1500, engagement: 5.8 },
+      { hashtag: '#Fitness', posts: 1200, engagement: 7.1 }
     ]
   }
 };
@@ -79,18 +105,22 @@ export default function TrendChatbot() {
     {
       id: '1',
       type: 'bot',
-      content: "Hi! I'm your AI trend analyst. Ask me anything about your data, trends, or performance metrics. I can provide insights and visualizations in real-time!",
+      content: "Hi! I'm your AI trend analyst powered by advanced machine learning. I can help you analyze trends, generate insights, create reports, and provide strategic recommendations. What would you like to explore today?",
       timestamp: new Date(),
       suggestions: [
         "Show trending hashtags",
         "Analyze competitor performance",
-        "Revenue breakdown by platform"
-      ]
+        "Revenue breakdown by platform",
+        "Generate content ideas"
+      ],
+      confidence: 100
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [chatHistory, setChatHistory] = useState<string[]>([]);
+  const [bookmarkedMessages, setBookmarkedMessages] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -101,84 +131,194 @@ export default function TrendChatbot() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+  useEffect(() => {
+    // Check for URL query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get('q');
+    if (query) {
+      setInputValue(query);
+      setTimeout(() => handleSendMessage(query), 500);
+    }
+  }, []);
+
+  const handleSendMessage = async (customMessage?: string) => {
+    const messageText = customMessage || inputValue;
+    if (!messageText.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: inputValue,
+      content: messageText,
       timestamp: new Date(),
     };
 
     setMessages(prev => [...prev, userMessage]);
+    setChatHistory(prev => [...prev, messageText]);
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate streaming response
+    // Add typing indicator
+    const typingMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      type: 'bot',
+      content: '',
+      timestamp: new Date(),
+      isTyping: true
+    };
+    setMessages(prev => [...prev, typingMessage]);
+
+    // Simulate realistic AI processing time
     setTimeout(() => {
+      setMessages(prev => prev.filter(m => !m.isTyping));
+      
       const botResponse: Message = {
-        id: (Date.now() + 1).toString(),
+        id: (Date.now() + 2).toString(),
         type: 'bot',
-        content: generateBotResponse(inputValue),
+        content: generateBotResponse(messageText),
         timestamp: new Date(),
-        chart: shouldIncludeChart(inputValue) ? {
-          type: 'line',
-          data: mockChartData.line.data,
-          title: mockChartData.line.title
+        chart: shouldIncludeChart(messageText) ? {
+          type: getChartType(messageText),
+          data: getChartData(messageText),
+          title: getChartTitle(messageText)
         } : undefined,
-        deepDiveLink: shouldIncludeChart(inputValue) ? '/trends' : undefined,
-        suggestions: generateSuggestions(inputValue)
+        deepDiveLink: shouldIncludeChart(messageText) ? '/trends' : undefined,
+        suggestions: generateSuggestions(messageText),
+        confidence: Math.floor(Math.random() * 20) + 80,
+        sources: generateSources(messageText),
+        actionItems: generateActionItems(messageText)
       };
 
       setMessages(prev => [...prev, botResponse]);
       setIsTyping(false);
-    }, 1500);
+    }, 2000 + Math.random() * 1000);
   };
 
   const generateBotResponse = (question: string): string => {
     const lowerQuestion = question.toLowerCase();
     
     if (lowerQuestion.includes('trending') || lowerQuestion.includes('hashtag')) {
-      return "Based on the latest data, #SustainableFashion is trending up 245% this week, followed by #TechGadgets2024 at +189%. The growth is primarily driven by increased engagement on TikTok and Instagram platforms.";
+      return "Based on real-time analysis across multiple platforms, #SustainableFashion is showing exceptional growth at +245% this week, driven by increased consumer awareness and influencer adoption. #TechGadgets2024 follows at +189% with strong performance on TikTok. The sustainable fashion trend shows particularly strong engagement rates of 8.4% compared to the platform average of 3.2%.";
     }
     
-    if (lowerQuestion.includes('revenue') || lowerQuestion.includes('sales')) {
-      return "Your revenue has shown strong performance this week with a 12.5% increase compared to last month. Peak performance was on Friday with $6,100 in daily revenue. The chart below shows the detailed breakdown.";
+    if (lowerQuestion.includes('revenue') || lowerQuestion.includes('sales') || lowerQuestion.includes('performance')) {
+      return "Your revenue performance shows strong momentum with a 12.5% increase compared to last month. Peak performance occurred on Friday with $6,100 in daily revenue, correlating with high search volume. The data indicates optimal posting times between 2-4 PM for maximum conversion. I've generated a detailed chart showing the revenue-search volume correlation below.";
     }
     
-    if (lowerQuestion.includes('engagement') || lowerQuestion.includes('performance')) {
-      return "Engagement rates are highest for sustainable fashion content (8.4% avg) and tech gadgets (6.2% avg). Video content performs 3x better than static posts across all platforms.";
+    if (lowerQuestion.includes('engagement') || lowerQuestion.includes('content')) {
+      return "Engagement analysis reveals that sustainable fashion content achieves the highest rates at 8.4% average, followed by fitness motivation at 7.1%. Video content consistently outperforms static posts by 3x across all platforms. The optimal content mix appears to be 60% video, 30% carousel posts, and 10% static images for maximum engagement.";
     }
     
-    if (lowerQuestion.includes('sentiment')) {
-      return "Sentiment analysis shows 75% positive, 20% neutral, and 5% negative mentions. #SustainableFashion has particularly strong positive sentiment at 89%.";
+    if (lowerQuestion.includes('sentiment') || lowerQuestion.includes('analysis')) {
+      return "Sentiment analysis across 50K+ mentions shows overwhelmingly positive reception: 75% positive, 20% neutral, and only 5% negative sentiment. #SustainableFashion demonstrates particularly strong positive sentiment at 89%, indicating high brand affinity and purchase intent. Key positive drivers include 'eco-friendly', 'quality', and 'stylish' mentions.";
     }
     
-    return "I've analyzed your query and found relevant insights. The data shows positive trends across your key metrics. Would you like me to dive deeper into any specific area?";
+    if (lowerQuestion.includes('competitor') || lowerQuestion.includes('compare')) {
+      return "Competitive analysis reveals BrandA leads with 23% market share but shows vulnerability in pricing strategy. BrandC is emerging as a strong competitor with +15% growth and viral TikTok campaigns. Your positioning in the sustainable segment provides a competitive advantage with 89% positive sentiment vs. industry average of 65%.";
+    }
+    
+    if (lowerQuestion.includes('forecast') || lowerQuestion.includes('predict')) {
+      return "ML-powered forecasting indicates #SustainableFashion will continue strong growth, potentially reaching +320% by month-end with 89% confidence. Seasonal factors and increasing brand partnerships support this projection. I recommend increasing content production by 40% to capitalize on this trend window.";
+    }
+    
+    if (lowerQuestion.includes('campaign') || lowerQuestion.includes('strategy')) {
+      return "Based on current trend analysis, I recommend a multi-platform campaign focusing on sustainable fashion during peak hours (2-4 PM). Suggested content mix: 60% educational content about sustainability, 30% product showcases, 10% user-generated content. Expected ROI: +156% based on similar campaigns.";
+    }
+    
+    return "I've analyzed your query using advanced ML algorithms and cross-referenced it with real-time market data. The insights show positive trends across your key metrics with several optimization opportunities. Would you like me to dive deeper into any specific area or generate actionable recommendations?";
   };
 
   const generateSuggestions = (question: string): string[] => {
     const suggestions = [
-      "Show me more details",
-      "Compare with last month",
-      "Export this data",
-      "Set up alerts for this trend"
+      "Show me more details about this trend",
+      "Compare with last month's data",
+      "Generate an action plan",
+      "Export this analysis",
+      "Set up alerts for similar trends",
+      "Create a campaign brief",
+      "Analyze competitor response",
+      "Show related opportunities"
     ];
-    return suggestions.slice(0, 3);
+    return suggestions.slice(0, 4);
+  };
+
+  const generateSources = (question: string): string[] => {
+    return [
+      "TikTok Analytics API",
+      "Instagram Business API", 
+      "Google Trends",
+      "Internal Sales Data",
+      "Competitor Intelligence"
+    ];
+  };
+
+  const generateActionItems = (question: string): string[] => {
+    const actions = [
+      "Increase content production for trending hashtags",
+      "Optimize posting schedule for peak engagement",
+      "Develop sustainable fashion content series",
+      "Monitor competitor pricing strategies",
+      "Set up automated trend alerts"
+    ];
+    return actions.slice(0, 3);
   };
 
   const shouldIncludeChart = (question: string): boolean => {
-    const chartKeywords = ['revenue', 'trend', 'performance', 'comparison', 'show me'];
+    const chartKeywords = ['revenue', 'trend', 'performance', 'comparison', 'show me', 'chart', 'graph', 'data'];
     return chartKeywords.some(keyword => question.toLowerCase().includes(keyword));
+  };
+
+  const getChartType = (question: string): 'line' | 'bar' | 'pie' => {
+    if (question.toLowerCase().includes('trend') || question.toLowerCase().includes('time')) return 'line';
+    if (question.toLowerCase().includes('compare') || question.toLowerCase().includes('hashtag')) return 'bar';
+    return 'line';
+  };
+
+  const getChartData = (question: string) => {
+    return getChartType(question) === 'line' ? mockChartData.line.data : mockChartData.bar.data;
+  };
+
+  const getChartTitle = (question: string): string => {
+    if (question.toLowerCase().includes('hashtag')) return mockChartData.bar.title;
+    return mockChartData.line.title;
   };
 
   const handleSampleQuestion = (question: string) => {
     setInputValue(question);
   };
 
+  const handleQuickAction = (query: string) => {
+    handleSendMessage(query);
+  };
+
   const handleSuggestionClick = (suggestion: string) => {
-    setInputValue(suggestion);
+    handleSendMessage(suggestion);
+  };
+
+  const copyMessage = (content: string) => {
+    navigator.clipboard.writeText(content);
+  };
+
+  const bookmarkMessage = (messageId: string) => {
+    setBookmarkedMessages(prev => 
+      prev.includes(messageId) 
+        ? prev.filter(id => id !== messageId)
+        : [...prev, messageId]
+    );
+  };
+
+  const exportChat = () => {
+    const chatData = {
+      timestamp: new Date().toISOString(),
+      messages: messages.filter(m => !m.isTyping),
+      summary: "AI Trend Analysis Chat Session"
+    };
+    
+    const blob = new Blob([JSON.stringify(chatData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `trend-chat-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
   };
 
   const MiniChart = ({ chart }: { chart: Message['chart'] }) => {
@@ -191,20 +331,28 @@ export default function TrendChatbot() {
           {chart.title}
         </h4>
         <div className="h-32 flex items-end gap-1">
-          {chart.data.map((item: any, index: number) => (
-            <div key={index} className="flex-1 flex flex-col items-center group">
-              <div 
-                className="w-full bg-gradient-to-t from-primary to-chart-1 rounded-t transition-all duration-300 group-hover:from-primary/80 group-hover:to-chart-1/80"
-                style={{ 
-                  height: `${(item.revenue || item.posts) / Math.max(...chart.data.map((d: any) => d.revenue || d.posts)) * 100}%`,
-                  minHeight: '8px'
-                }}
-              />
-              <span className="text-xs text-muted-foreground mt-1 font-medium">
-                {item.day || item.hashtag?.slice(0, 3)}
-              </span>
-            </div>
-          ))}
+          {chart.data.map((item: any, index: number) => {
+            const value = item.revenue || item.posts || item.engagement || 0;
+            const maxValue = Math.max(...chart.data.map((d: any) => d.revenue || d.posts || d.engagement || 0));
+            
+            return (
+              <div key={index} className="flex-1 flex flex-col items-center group">
+                <div 
+                  className="w-full bg-gradient-to-t from-primary to-chart-1 rounded-t transition-all duration-300 group-hover:from-primary/80 group-hover:to-chart-1/80"
+                  style={{ 
+                    height: `${(value / maxValue) * 100}%`,
+                    minHeight: '8px'
+                  }}
+                />
+                <span className="text-xs text-muted-foreground mt-1 font-medium">
+                  {item.day || item.hashtag?.slice(0, 8) || `Item ${index + 1}`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-2 text-xs text-muted-foreground">
+          Hover over bars for detailed values
         </div>
       </div>
     );
@@ -216,7 +364,11 @@ export default function TrendChatbot() {
         <div className="status-dot status-online mr-1"></div>
         AI Online
       </Badge>
-      <Button variant="outline" size="sm" className="hover-lift">
+      <Button variant="outline" size="sm" className="hover-lift" onClick={exportChat}>
+        <Download className="h-4 w-4 mr-2" />
+        Export Chat
+      </Button>
+      <Button variant="outline" size="sm" className="hover-lift" onClick={() => setMessages([messages[0]])}>
         <RefreshCw className="h-4 w-4 mr-2" />
         New Chat
       </Button>
@@ -232,9 +384,9 @@ export default function TrendChatbot() {
       />
       
       <div className="grid gap-6 lg:grid-cols-4">
-        {/* Chat Interface */}
+        {/* Enhanced Chat Interface */}
         <div className="lg:col-span-3">
-          <Card className="h-[600px] flex flex-col hover-lift">
+          <Card className="h-[700px] flex flex-col hover-lift">
             <CardHeader className="flex-shrink-0 border-b bg-gradient-to-r from-primary/5 to-chart-1/5">
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -245,12 +397,18 @@ export default function TrendChatbot() {
                   <span>AI Trend Analyst</span>
                   <Badge variant="secondary" className="bg-gradient-to-r from-primary to-chart-1 text-primary-foreground">
                     <Sparkles className="h-3 w-3 mr-1" />
-                    Beta
+                    GPT-4 Powered
                   </Badge>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Zap className="h-4 w-4 text-green-500" />
-                  Response time: <span className="font-medium text-green-600">&lt;2s</span>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Brain className="h-4 w-4 text-primary" />
+                    <span>Advanced ML</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-green-500" />
+                    <span className="font-medium text-green-600">Response time: <2s</span>
+                  </div>
                 </div>
               </CardTitle>
             </CardHeader>
@@ -266,12 +424,16 @@ export default function TrendChatbot() {
                       {message.type === 'bot' && (
                         <div className="flex-shrink-0">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-chart-1 flex items-center justify-center">
-                            <Bot className="h-5 w-5 text-primary-foreground" />
+                            {message.isTyping ? (
+                              <Loader2 className="h-5 w-5 text-primary-foreground animate-spin" />
+                            ) : (
+                              <Bot className="h-5 w-5 text-primary-foreground" />
+                            )}
                           </div>
                         </div>
                       )}
                       
-                      <div className={`max-w-[80%] ${message.type === 'user' ? 'order-1' : ''}`}>
+                      <div className={`max-w-[85%] ${message.type === 'user' ? 'order-1' : ''}`}>
                         <div
                           className={`rounded-2xl p-4 transition-all duration-200 hover-lift ${
                             message.type === 'user'
@@ -279,64 +441,132 @@ export default function TrendChatbot() {
                               : 'bg-muted/50 border'
                           }`}
                         >
-                          <p className="text-sm leading-relaxed">{message.content}</p>
-                          
-                          {message.chart && <MiniChart chart={message.chart} />}
-                          
-                          {message.suggestions && message.type === 'bot' && (
-                            <div className="mt-3 space-y-2">
-                              <p className="text-xs text-muted-foreground font-medium">Suggested follow-ups:</p>
-                              <div className="flex flex-wrap gap-2">
-                                {message.suggestions.map((suggestion, index) => (
-                                  <Button
-                                    key={index}
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-xs h-7 hover-lift"
-                                    onClick={() => handleSuggestionClick(suggestion)}
-                                  >
-                                    {suggestion}
-                                  </Button>
-                                ))}
+                          {message.isTyping ? (
+                            <div className="flex items-center gap-2">
+                              <div className="flex gap-1">
+                                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
+                                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                               </div>
+                              <span className="text-sm text-muted-foreground">AI is analyzing...</span>
                             </div>
-                          )}
-                          
-                          {message.deepDiveLink && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="mt-3 hover-lift"
-                              asChild
-                            >
-                              <a href={message.deepDiveLink}>
-                                <ExternalLink className="h-3 w-3 mr-2" />
-                                Deep Dive Analysis
-                              </a>
-                            </Button>
+                          ) : (
+                            <>
+                              <p className="text-sm leading-relaxed">{message.content}</p>
+                              
+                              {message.confidence && message.type === 'bot' && (
+                                <div className="mt-3 p-2 bg-white/50 rounded-lg">
+                                  <div className="flex items-center justify-between text-xs mb-1">
+                                    <span className="text-muted-foreground">Confidence Level</span>
+                                    <span className="font-medium">{message.confidence}%</span>
+                                  </div>
+                                  <Progress value={message.confidence} className="h-1" />
+                                </div>
+                              )}
+                              
+                              {message.chart && <MiniChart chart={message.chart} />}
+                              
+                              {message.sources && message.type === 'bot' && (
+                                <div className="mt-3 p-2 bg-white/50 rounded-lg">
+                                  <p className="text-xs text-muted-foreground font-medium mb-1">Data Sources:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {message.sources.map((source, index) => (
+                                      <Badge key={index} variant="outline" className="text-xs">
+                                        {source}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {message.actionItems && message.type === 'bot' && (
+                                <div className="mt-3 p-2 bg-blue-50 rounded-lg">
+                                  <p className="text-xs font-medium mb-2 flex items-center gap-1">
+                                    <Target className="h-3 w-3" />
+                                    Recommended Actions:
+                                  </p>
+                                  <ul className="text-xs space-y-1">
+                                    {message.actionItems.map((action, index) => (
+                                      <li key={index} className="flex items-start gap-1">
+                                        <CheckCircle2 className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                                        {action}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {message.suggestions && message.type === 'bot' && (
+                                <div className="mt-3 space-y-2">
+                                  <p className="text-xs text-muted-foreground font-medium">Suggested follow-ups:</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {message.suggestions.map((suggestion, index) => (
+                                      <Button
+                                        key={index}
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-xs h-7 hover-lift"
+                                        onClick={() => handleSuggestionClick(suggestion)}
+                                      >
+                                        {suggestion}
+                                      </Button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {message.deepDiveLink && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="mt-3 hover-lift"
+                                  asChild
+                                >
+                                  <a href={message.deepDiveLink}>
+                                    <ExternalLink className="h-3 w-3 mr-2" />
+                                    Deep Dive Analysis
+                                  </a>
+                                </Button>
+                              )}
+                            </>
                           )}
                         </div>
                         
-                        <div className="flex items-center justify-between mt-2 px-2">
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            {message.timestamp.toLocaleTimeString()}
-                          </div>
-                          
-                          {message.type === 'bot' && (
-                            <div className="flex items-center gap-1">
-                              <Button variant="ghost" size="icon" className="h-6 w-6 hover-lift">
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 hover-lift">
-                                <ThumbsUp className="h-3 w-3" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 hover-lift">
-                                <ThumbsDown className="h-3 w-3" />
-                              </Button>
+                        {!message.isTyping && (
+                          <div className="flex items-center justify-between mt-2 px-2">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Clock className="h-3 w-3" />
+                              {message.timestamp.toLocaleTimeString()}
                             </div>
-                          )}
-                        </div>
+                            
+                            {message.type === 'bot' && (
+                              <div className="flex items-center gap-1">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-6 w-6 hover-lift"
+                                  onClick={() => copyMessage(message.content)}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-6 w-6 hover-lift"
+                                  onClick={() => bookmarkMessage(message.id)}
+                                >
+                                  <Bookmark className={`h-3 w-3 ${bookmarkedMessages.includes(message.id) ? 'fill-current text-blue-600' : ''}`} />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 hover-lift">
+                                  <ThumbsUp className="h-3 w-3" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 hover-lift">
+                                  <ThumbsDown className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       
                       {message.type === 'user' && (
@@ -348,23 +578,6 @@ export default function TrendChatbot() {
                       )}
                     </div>
                   ))}
-                  
-                  {isTyping && (
-                    <div className="flex gap-4 animate-slide-in-up">
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-chart-1 flex items-center justify-center">
-                          <Bot className="h-5 w-5 text-primary-foreground animate-pulse" />
-                        </div>
-                      </div>
-                      <div className="bg-muted/50 border rounded-2xl p-4">
-                        <div className="flex gap-1">
-                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
                 <div ref={messagesEndRef} />
               </ScrollArea>
@@ -373,11 +586,12 @@ export default function TrendChatbot() {
                 <div className="flex gap-2">
                   <div className="flex-1 relative">
                     <Input
-                      placeholder="Ask me about trends, revenue, engagement..."
+                      placeholder="Ask me about trends, revenue, engagement, or anything else..."
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                      onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                       className="pr-20 focus-ring"
+                      disabled={isTyping}
                     />
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                       <Button
@@ -394,7 +608,7 @@ export default function TrendChatbot() {
                     </div>
                   </div>
                   <Button 
-                    onClick={handleSendMessage} 
+                    onClick={() => handleSendMessage()} 
                     disabled={!inputValue.trim() || isTyping}
                     className="gradient-bg hover-lift"
                   >
@@ -406,8 +620,33 @@ export default function TrendChatbot() {
           </Card>
         </div>
 
-        {/* Sample Questions Sidebar */}
+        {/* Enhanced Sidebar */}
         <div className="space-y-4">
+          {/* Quick Actions */}
+          <Card className="hover-lift">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-primary" />
+                Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {quickActions.map((action, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-left justify-start h-auto p-3 whitespace-normal hover-lift focus-ring"
+                  onClick={() => handleQuickAction(action.query)}
+                >
+                  <action.icon className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span className="text-sm">{action.label}</span>
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Sample Questions */}
           <Card className="hover-lift">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -416,7 +655,7 @@ export default function TrendChatbot() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {sampleQuestions.map((question, index) => (
+              {sampleQuestions.slice(0, 6).map((question, index) => (
                 <Button
                   key={index}
                   variant="outline"
@@ -431,11 +670,12 @@ export default function TrendChatbot() {
             </CardContent>
           </Card>
 
+          {/* AI Stats */}
           <Card className="hover-lift">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
-                Quick Stats
+                AI Performance
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -462,13 +702,20 @@ export default function TrendChatbot() {
                   </div>
                 </div>
               </div>
+              <div className="pt-2 border-t">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Bookmarked</span>
+                  <span className="font-medium">{bookmarkedMessages.length}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
+          {/* Pro Tips */}
           <Card className="hover-lift border-primary/20 bg-gradient-to-br from-primary/5 to-chart-1/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-primary">
-                <Zap className="h-5 w-5" />
+                <Lightbulb className="h-5 w-5" />
                 Pro Tips
               </CardTitle>
             </CardHeader>
@@ -477,6 +724,8 @@ export default function TrendChatbot() {
               <p>• Use "compare" for side-by-side analysis</p>
               <p>• Request charts with "show me" or "visualize"</p>
               <p>• Try voice input for hands-free queries</p>
+              <p>• Bookmark important responses for later</p>
+              <p>• Export chat sessions for reports</p>
             </CardContent>
           </Card>
         </div>
