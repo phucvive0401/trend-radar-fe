@@ -7,7 +7,7 @@ export const mockKPIs: KPIData[] = [
     value: '$124,500',
     change: 12.5,
     changeLabel: 'from last month',
-    icon: DollarSign,
+    icon: React.ComponentType<SVGProps<SVGSVGElement>>;
     trend: [4200, 3800, 5200, 4900, 6100, 5800, 4600],
   },
   {
