@@ -24,6 +24,8 @@ import {
   Store,
   Bot,
   Sparkles,
+  ArrowUpRight,
+  Clock,
   Eye,
   Heart,
   Share2,
@@ -41,8 +43,11 @@ const trendingHashtags = [
     sentiment: 'positive', 
     price: '$45-85',
     engagement: '8.4%',
+    velocity: 'Accelerating',
     platforms: ['TikTok', 'Instagram', 'Twitter'],
-    peakHours: '2-4 PM'
+    peakHours: '2-4 PM',
+    demographics: '18-34',
+    competition: 'Medium'
   },
   { 
     hashtag: '#TechGadgets2024', 
@@ -52,8 +57,11 @@ const trendingHashtags = [
     sentiment: 'positive', 
     price: '$120-450',
     engagement: '6.2%',
+    velocity: 'Rising',
     platforms: ['TikTok', 'YouTube'],
-    peakHours: '7-9 PM'
+    peakHours: '7-9 PM',
+    demographics: '25-45',
+    competition: 'High'
   },
   { 
     hashtag: '#HomeDecor', 
@@ -63,8 +71,11 @@ const trendingHashtags = [
     sentiment: 'neutral', 
     price: '$25-200',
     engagement: '5.8%',
+    velocity: 'Steady',
     platforms: ['Instagram', 'Pinterest'],
-    peakHours: '10-12 AM'
+    peakHours: '10-12 PM',
+    demographics: '28-50',
+    competition: 'Medium'
   },
   { 
     hashtag: '#FitnessMotivation', 
@@ -74,8 +85,11 @@ const trendingHashtags = [
     sentiment: 'positive', 
     price: '$15-80',
     engagement: '7.1%',
+    velocity: 'Rising',
     platforms: ['TikTok', 'Instagram'],
-    peakHours: '6-8 AM'
+    peakHours: '6-8 AM',
+    demographics: '20-40',
+    competition: 'Low'
   },
   { 
     hashtag: '#FoodieLife', 
@@ -84,9 +98,12 @@ const trendingHashtags = [
     growth: '+112%', 
     sentiment: 'positive', 
     price: '$8-45',
-    engagement: '9.2%',
+    engagement: '4.9%',
+    velocity: 'Stable',
     platforms: ['Instagram', 'TikTok'],
-    peakHours: '12-2 PM'
+    peakHours: '12-2 PM',
+    demographics: '22-45',
+    competition: 'High'
   },
 ];
 
@@ -97,8 +114,9 @@ const competitorData = [
     avgPrice: '$67', 
     sentiment: 'positive', 
     trend: '+12%',
+    engagement: '6.8%',
     followers: '2.4M',
-    engagement: '4.2%'
+    postFrequency: '3x/day'
   },
   { 
     name: 'BrandB', 
@@ -106,8 +124,9 @@ const competitorData = [
     avgPrice: '$89', 
     sentiment: 'neutral', 
     trend: '+8%',
+    engagement: '5.2%',
     followers: '1.8M',
-    engagement: '3.8%'
+    postFrequency: '2x/day'
   },
   { 
     name: 'BrandC', 
@@ -115,8 +134,9 @@ const competitorData = [
     avgPrice: '$45', 
     sentiment: 'positive', 
     trend: '+15%',
+    engagement: '7.3%',
     followers: '1.2M',
-    engagement: '5.1%'
+    postFrequency: '4x/day'
   },
   { 
     name: 'BrandD', 
@@ -124,25 +144,57 @@ const competitorData = [
     avgPrice: '$78', 
     sentiment: 'negative', 
     trend: '-3%',
+    engagement: '3.9%',
     followers: '980K',
-    engagement: '2.9%'
+    postFrequency: '1x/day'
   },
 ];
 
 const stores = [
-  { id: 'all', name: 'All Stores' },
-  { id: 'store1', name: 'Fashion Store A' },
-  { id: 'store2', name: 'Tech Store B' },
-  { id: 'store3', name: 'Home Store C' },
+  { id: 'all', name: 'All Stores', count: 15 },
+  { id: 'store1', name: 'Fashion Store A', count: 5 },
+  { id: 'store2', name: 'Tech Store B', count: 3 },
+  { id: 'store3', name: 'Home Store C', count: 4 },
+  { id: 'store4', name: 'Food Store D', count: 3 },
 ];
 
 const sampleChatbotQuestions = [
-  "What's trending in sustainable fashion?",
+  "What's trending in sustainable fashion right now?",
   "Show me competitor analysis for tech products",
-  "Which hashtags have the highest ROI?",
+  "Which hashtags have the highest ROI potential?",
   "Compare engagement rates across platforms",
-  "What's the sentiment for #HomeDecor?",
-  "Forecast trends for next month"
+  "What's the sentiment analysis for #HomeDecor?",
+  "Forecast trending topics for next month"
+];
+
+const forecastData = [
+  {
+    hashtag: '#BackToSchool2024',
+    currentRank: 'Not Trending',
+    predictedRank: 3,
+    confidence: '89%',
+    timeframe: '2-3 weeks',
+    category: 'Education',
+    opportunity: 'High'
+  },
+  {
+    hashtag: '#SummerVibes',
+    currentRank: 8,
+    predictedRank: 15,
+    confidence: '76%',
+    timeframe: '1-2 weeks',
+    category: 'Lifestyle',
+    opportunity: 'Low'
+  },
+  {
+    hashtag: '#EcoFriendly',
+    currentRank: 12,
+    predictedRank: 5,
+    confidence: '92%',
+    timeframe: '3-4 weeks',
+    category: 'Sustainability',
+    opportunity: 'Very High'
+  }
 ];
 
 export default function TrendExplorer() {
@@ -154,148 +206,171 @@ export default function TrendExplorer() {
   const [showChatbot, setShowChatbot] = useState(false);
   const [selectedTrend, setSelectedTrend] = useState<any>(null);
 
-  const filteredHashtags = trendingHashtags.filter(hashtag => {
-    if (categoryFilter === 'all') return true;
-    return hashtag.hashtag.toLowerCase().includes(categoryFilter.toLowerCase());
-  });
-
-  const getSentimentColor = (sentiment: string) => {
-    switch (sentiment) {
-      case 'positive': return 'text-green-600 bg-green-100';
-      case 'neutral': return 'text-yellow-600 bg-yellow-100';
-      case 'negative': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+  const getVelocityColor = (velocity: string) => {
+    switch (velocity) {
+      case 'Accelerating': return 'text-green-600 bg-green-50 border-green-200';
+      case 'Rising': return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'Steady': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'Stable': return 'text-gray-600 bg-gray-50 border-gray-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
     }
   };
 
-  const headerActions = (
-    <div className="flex items-center gap-2">
-      <Dialog open={showChatbot} onOpenChange={setShowChatbot}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="bg-primary/5 border-primary/20 hover:bg-primary/10 hover-lift">
-            <Bot className="h-4 w-4 mr-2" />
-            Ask AI
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              AI Trend Analyst
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Try asking these sample questions:
-            </p>
-            <div className="space-y-2">
-              {sampleChatbotQuestions.map((question, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-left justify-start h-auto p-3 whitespace-normal hover-lift"
-                  onClick={() => {
-                    setShowChatbot(false);
-                    window.location.href = `/chatbot?q=${encodeURIComponent(question)}`;
-                  }}
-                >
-                  <MessageCircle className="h-3 w-3 mr-2 flex-shrink-0 mt-0.5" />
-                  {question}
-                </Button>
-              ))}
-            </div>
-            <Button 
-              className="w-full gradient-bg hover-lift" 
-              onClick={() => {
-                setShowChatbot(false);
-                window.location.href = '/chatbot';
-              }}
-            >
-              <Bot className="h-4 w-4 mr-2" />
-              Open Full Chatbot
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      
-      {permissions.canExport && (
-        <Button variant="outline" className="hover-lift">
-          <Download className="h-4 w-4 mr-2" />
-          Export
-        </Button>
-      )}
-    </div>
-  );
+  const getSentimentColor = (sentiment: string) => {
+    switch (sentiment) {
+      case 'positive': return 'text-green-600 bg-green-50';
+      case 'neutral': return 'text-yellow-600 bg-yellow-50';
+      case 'negative': return 'text-red-600 bg-red-50';
+      default: return 'text-gray-600 bg-gray-50';
+    }
+  };
+
+  const getCompetitionColor = (competition: string) => {
+    switch (competition) {
+      case 'Low': return 'text-green-600 bg-green-50';
+      case 'Medium': return 'text-yellow-600 bg-yellow-50';
+      case 'High': return 'text-red-600 bg-red-50';
+      default: return 'text-gray-600 bg-gray-50';
+    }
+  };
+
+  const filteredHashtags = trendingHashtags.filter(hashtag => {
+    const matchesSearch = hashtag.hashtag.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = categoryFilter === 'all' || hashtag.hashtag.toLowerCase().includes(categoryFilter.toLowerCase());
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="space-y-6 animate-slide-in-up">
+    <div className="space-y-6">
       <Header 
         title="Trend Explorer" 
         subtitle="Discover trending hashtags and competitive insights"
-        actions={headerActions}
       />
       
       {/* Enhanced Search and Filters */}
-      <Card className="glass border-primary/20">
-        <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search hashtags, products, or keywords..."
-                  className="pl-10 focus-ring"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+      <Card className="p-6">
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search hashtags, products, or keywords..."
+                className="pl-10 h-12"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
-            
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <Store className="h-4 w-4 text-muted-foreground" />
-                <Select value={storeFilter} onValueChange={setStoreFilter}>
-                  <SelectTrigger className="w-40 focus-ring">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stores.map((store) => (
-                      <SelectItem key={store.id} value={store.id}>
-                        {store.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-40 focus-ring">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="fashion">Fashion</SelectItem>
-                  <SelectItem value="tech">Technology</SelectItem>
-                  <SelectItem value="food">Food & Beverage</SelectItem>
-                  <SelectItem value="fitness">Fitness</SelectItem>
-                  <SelectItem value="home">Home & Garden</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger className="w-32 focus-ring">
+          </div>
+          
+          <div className="flex gap-3">
+            <div className="flex items-center gap-2">
+              <Store className="h-4 w-4 text-muted-foreground" />
+              <Select value={storeFilter} onValueChange={setStoreFilter}>
+                <SelectTrigger className="w-48">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="24h">Last 24h</SelectItem>
-                  <SelectItem value="7d">Last 7 days</SelectItem>
-                  <SelectItem value="30d">Last 30 days</SelectItem>
+                  {stores.map((store) => (
+                    <SelectItem key={store.id} value={store.id}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>{store.name}</span>
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          {store.count}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+            
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="fashion">Fashion</SelectItem>
+                <SelectItem value="tech">Technology</SelectItem>
+                <SelectItem value="food">Food & Beverage</SelectItem>
+                <SelectItem value="fitness">Fitness</SelectItem>
+                <SelectItem value="home">Home & Garden</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="24h">24 Hours</SelectItem>
+                <SelectItem value="7d">7 Days</SelectItem>
+                <SelectItem value="30d">30 Days</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {permissions.canExport && (
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            )}
+            
+            {/* Enhanced Ask Chatbot Button */}
+            <Dialog open={showChatbot} onOpenChange={setShowChatbot}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90">
+                  <Bot className="h-4 w-4 mr-2" />
+                  Ask AI Analyst
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Bot className="h-5 w-5 text-primary" />
+                    </div>
+                    Ask AI Trend Analyst
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="p-4 bg-gradient-to-r from-primary/5 to-blue-50 rounded-lg border">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Get instant insights with natural language queries. Try these examples:
+                    </p>
+                  </div>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {sampleChatbotQuestions.map((question, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-left justify-start h-auto p-3 whitespace-normal hover:bg-primary/5"
+                        onClick={() => {
+                          setShowChatbot(false);
+                          window.location.href = `/chatbot?q=${encodeURIComponent(question)}`;
+                        }}
+                      >
+                        <MessageCircle className="h-3 w-3 mr-2 flex-shrink-0 mt-0.5" />
+                        {question}
+                      </Button>
+                    ))}
+                  </div>
+                  <Button 
+                    className="w-full" 
+                    onClick={() => {
+                      setShowChatbot(false);
+                      window.location.href = '/chatbot';
+                    }}
+                  >
+                    <Bot className="h-4 w-4 mr-2" />
+                    Open Full AI Analyst
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
-        </CardContent>
+        </div>
       </Card>
 
       <Tabs defaultValue="hashtags" className="space-y-6">
@@ -303,42 +378,61 @@ export default function TrendExplorer() {
           <TabsTrigger value="hashtags">Trending Hashtags</TabsTrigger>
           <TabsTrigger value="products">Product Rankings</TabsTrigger>
           <TabsTrigger value="competitors">Competitor Analysis</TabsTrigger>
-          <TabsTrigger value="forecast">4-Week Forecast</TabsTrigger>
+          <TabsTrigger value="forecast">AI Forecast</TabsTrigger>
         </TabsList>
 
         <TabsContent value="hashtags" className="space-y-4">
           <div className="grid gap-4">
             {filteredHashtags.map((item, index) => (
-              <Card key={index} className="hover-lift group cursor-pointer" onClick={() => setSelectedTrend(item)}>
+              <Card key={index} className="hover:shadow-lg transition-all duration-200 cursor-pointer group">
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-chart-1 text-primary-foreground text-sm font-bold">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4 flex-1">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 text-white text-lg font-bold shadow-lg">
                         {item.rank}
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">{item.hashtag}</h3>
-                        <div className="flex items-center gap-4 mt-2">
-                          <span className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            {item.volume} posts
-                          </span>
-                          <span className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Heart className="h-3 w-3" />
-                            {item.engagement} engagement
-                          </span>
-                          <span className="text-sm text-muted-foreground flex items-center gap-1">
-                            <DollarSign className="h-3 w-3" />
-                            {item.price}
-                          </span>
-                          <span className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            Peak: {item.peakHours}
-                          </span>
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-bold text-xl">{item.hashtag}</h3>
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium border ${getVelocityColor(item.velocity)}`}>
+                            {item.velocity}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 mt-2">
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <div className="text-sm font-medium">{item.volume}</div>
+                              <div className="text-xs text-muted-foreground">Posts</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Heart className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <div className="text-sm font-medium">{item.engagement}</div>
+                              <div className="text-xs text-muted-foreground">Engagement</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <div className="text-sm font-medium">{item.peakHours}</div>
+                              <div className="text-xs text-muted-foreground">Peak Hours</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <div className="text-sm font-medium">{item.price}</div>
+                              <div className="text-xs text-muted-foreground">Price Range</div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 mb-3">
                           {item.platforms.map((platform) => (
-                            <Badge key={platform} variant="outline" className="text-xs">
+                            <Badge key={platform} variant="secondary" className="text-xs">
                               {platform}
                             </Badge>
                           ))}
@@ -346,17 +440,28 @@ export default function TrendExplorer() {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-4">
-                      <Badge className={`${getSentimentColor(item.sentiment)} border-0`}>
-                        {item.sentiment}
-                      </Badge>
-                      <Badge variant="outline" className="text-green-600 font-medium">
+                    <div className="flex flex-col items-end gap-3">
+                      <Badge variant="outline" className="text-green-600 font-semibold">
                         {item.growth}
                       </Badge>
-                      <Button variant="outline" size="sm" className="hover-lift">
-                        <Target className="h-4 w-4 mr-2" />
-                        Analyze
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${getSentimentColor(item.sentiment)}`}>
+                          {item.sentiment}
+                        </div>
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${getCompetitionColor(item.competition)}`}>
+                          {item.competition} Competition
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                          <BarChart3 className="h-4 w-4 mr-2" />
+                          Analyze
+                        </Button>
+                        <Button size="sm">
+                          <Target className="h-4 w-4 mr-2" />
+                          Target
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -366,7 +471,7 @@ export default function TrendExplorer() {
         </TabsContent>
 
         <TabsContent value="products" className="space-y-4">
-          <Card className="hover-lift">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
@@ -376,24 +481,31 @@ export default function TrendExplorer() {
             <CardContent>
               <div className="space-y-4">
                 {[1, 2, 3, 4, 5].map((rank) => (
-                  <div key={rank} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-all duration-200 hover-lift group">
+                  <div key={rank} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-chart-1 text-primary-foreground text-sm font-bold">
-                        {rank}
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold">
+                        #{rank}
                       </div>
                       <div>
-                        <h4 className="font-medium group-hover:text-primary transition-colors">Product {rank}</h4>
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          <span>Category • Brand</span>
-                          <Badge variant="outline" className="text-xs">
-                            {Math.floor(Math.random() * 1000) + 100} reviews
-                          </Badge>
+                        <h4 className="font-medium">Eco-Friendly Product {rank}</h4>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span>Sustainable Fashion</span>
+                          <span>•</span>
+                          <span>Brand {String.fromCharCode(64 + rank)}</span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1">
+                            <Eye className="h-3 w-3" />
+                            {(Math.random() * 10 + 5).toFixed(1)}% engagement
+                          </span>
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-lg">${Math.floor(Math.random() * 100) + 20}</p>
-                      <p className="text-sm text-green-600 font-medium">+{Math.floor(Math.random() * 50) + 10}%</p>
+                      <p className="text-sm text-green-600 flex items-center gap-1">
+                        <TrendingUp className="h-3 w-3" />
+                        +{Math.floor(Math.random() * 50) + 10}%
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -405,19 +517,24 @@ export default function TrendExplorer() {
         <TabsContent value="competitors" className="space-y-4">
           <div className="grid gap-6 md:grid-cols-2">
             {competitorData.map((competitor, index) => (
-              <Card key={index} className="hover-lift group">
+              <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="group-hover:text-primary transition-colors">{competitor.name}</span>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Store className="h-5 w-5 text-primary" />
+                      </div>
+                      {competitor.name}
+                    </CardTitle>
                     <Badge variant={competitor.trend.startsWith('+') ? 'default' : 'destructive'}>
                       {competitor.trend}
                     </Badge>
-                  </CardTitle>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Market Share</span>
                           <span className="font-medium">{competitor.marketShare}</span>
@@ -427,27 +544,37 @@ export default function TrendExplorer() {
                           <span className="font-medium">{competitor.avgPrice}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Followers</span>
-                          <span className="font-medium">{competitor.followers}</span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Engagement</span>
                           <span className="font-medium">{competitor.engagement}</span>
                         </div>
-                        <div className="flex justify-between items-center">
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Followers</span>
+                          <span className="font-medium">{competitor.followers}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Post Frequency</span>
+                          <span className="font-medium">{competitor.postFrequency}</span>
+                        </div>
+                        <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Sentiment</span>
-                          <Badge className={`${getSentimentColor(competitor.sentiment)} border-0 text-xs`}>
+                          <Badge 
+                            variant={competitor.sentiment === 'positive' ? 'default' : 
+                                    competitor.sentiment === 'neutral' ? 'secondary' : 'destructive'}
+                            className="capitalize text-xs"
+                          >
                             {competitor.sentiment}
                           </Badge>
                         </div>
                       </div>
                     </div>
-                    <Button variant="outline" className="w-full hover-lift">
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Details
-                    </Button>
+                    <div className="pt-3 border-t">
+                      <Button variant="outline" size="sm" className="w-full">
+                        <ArrowUpRight className="h-4 w-4 mr-2" />
+                        View Detailed Analysis
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -456,98 +583,70 @@ export default function TrendExplorer() {
         </TabsContent>
 
         <TabsContent value="forecast" className="space-y-4">
-          <Card className="hover-lift">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5" />
-                ML-Powered 4-Week Forecast
+                AI-Powered 4-Week Trend Forecast
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64 flex items-center justify-center bg-gradient-to-br from-chart-4/10 to-chart-5/10 rounded-lg border border-chart-4/20">
-                <div className="text-center space-y-3">
-                  <div className="relative">
-                    <BarChart3 className="h-16 w-16 text-chart-4 mx-auto animate-pulse" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-chart-4/20 to-chart-5/20 rounded-full blur-xl"></div>
+              <div className="space-y-4">
+                {forecastData.map((forecast, index) => (
+                  <div key={index} className="p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <h4 className="font-semibold">{forecast.hashtag}</h4>
+                        <Badge variant="outline" className="text-xs">
+                          {forecast.category}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant={forecast.opportunity === 'Very High' ? 'default' : 
+                                  forecast.opportunity === 'High' ? 'secondary' : 'outline'}
+                          className="text-xs"
+                        >
+                          {forecast.opportunity} Opportunity
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Current Rank</span>
+                        <div className="font-medium">{forecast.currentRank}</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Predicted Rank</span>
+                        <div className="font-medium text-primary">#{forecast.predictedRank}</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Confidence</span>
+                        <div className="font-medium text-green-600">{forecast.confidence}</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Timeframe</span>
+                        <div className="font-medium">{forecast.timeframe}</div>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-lg font-medium">ML Forecast Visualization</p>
-                    <p className="text-sm text-muted-foreground">Predicted trends for next 4 weeks</p>
-                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-6 p-4 bg-gradient-to-r from-primary/5 to-blue-50 rounded-lg border">
+                <div className="flex items-center gap-3 mb-2">
+                  <Zap className="h-5 w-5 text-primary" />
+                  <h4 className="font-semibold">AI Insights</h4>
                 </div>
+                <p className="text-sm text-muted-foreground">
+                  Based on historical data, current momentum, and external factors, our AI predicts significant opportunities in sustainability and education-related content over the next month.
+                </p>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Trend Detail Modal */}
-      {selectedTrend && (
-        <Dialog open={!!selectedTrend} onOpenChange={() => setSelectedTrend(null)}>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Hash className="h-5 w-5" />
-                {selectedTrend.hashtag} - Detailed Analysis
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-3 bg-primary/5 rounded-lg">
-                  <p className="text-2xl font-bold text-primary">{selectedTrend.volume}</p>
-                  <p className="text-xs text-muted-foreground">Total Posts</p>
-                </div>
-                <div className="text-center p-3 bg-green-50 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">{selectedTrend.growth}</p>
-                  <p className="text-xs text-muted-foreground">Growth Rate</p>
-                </div>
-                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <p className="text-2xl font-bold text-blue-600">{selectedTrend.engagement}</p>
-                  <p className="text-xs text-muted-foreground">Engagement</p>
-                </div>
-                <div className="text-center p-3 bg-purple-50 rounded-lg">
-                  <p className="text-2xl font-bold text-purple-600">#{selectedTrend.rank}</p>
-                  <p className="text-xs text-muted-foreground">Global Rank</p>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-2">Platform Distribution</h4>
-                  <div className="flex gap-2">
-                    {selectedTrend.platforms.map((platform: string) => (
-                      <Badge key={platform} variant="outline">
-                        {platform}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="font-medium mb-2">Peak Activity Hours</h4>
-                  <p className="text-sm text-muted-foreground">{selectedTrend.peakHours}</p>
-                </div>
-                
-                <div>
-                  <h4 className="font-medium mb-2">Price Range</h4>
-                  <p className="text-sm text-muted-foreground">{selectedTrend.price}</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                <Button className="flex-1 gradient-bg">
-                  <Target className="h-4 w-4 mr-2" />
-                  Create Campaign
-                </Button>
-                <Button variant="outline">
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 }

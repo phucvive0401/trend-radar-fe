@@ -52,7 +52,7 @@ const plans = [
     description: 'Advanced features for growing businesses',
     features: [
       'Up to 15 integrations',
-      'Advanced analytics &amp; forecasting',
+      'Advanced analytics & forecasting',
       '10,000 API calls/month',
       'Priority support',
       '30-day data retention',
@@ -77,7 +77,7 @@ const plans = [
       'Unlimited API calls',
       '24/7 dedicated support',
       'Unlimited data retention',
-      'Custom reports &amp; dashboards',
+      'Custom reports & dashboards',
       'Unlimited team members',
       'Advanced A/B testing',
       'White-label options',
@@ -93,7 +93,7 @@ const currentPlan = {
   name: 'Professional',
   price: '$79',
   period: '/month',
-  nextBilling: '2024-02-15',
+  nextBilling: new Date('2024-02-15'),
   usage: {
     integrations: { used: 8, limit: 15 },
     apiCalls: { used: 6420, limit: 10000 },
@@ -105,21 +105,21 @@ const currentPlan = {
 const invoices = [
   {
     id: 'INV-2024-001',
-    date: '2024-01-15',
+    date: new Date('2024-01-15'),
     amount: '$79.00',
     status: 'paid',
     plan: 'Professional',
   },
   {
     id: 'INV-2023-012',
-    date: '2023-12-15',
+    date: new Date('2023-12-15'),
     amount: '$79.00',
     status: 'paid',
     plan: 'Professional',
   },
   {
     id: 'INV-2023-011',
-    date: '2023-11-15',
+    date: new Date('2023-11-15'),
     amount: '$29.00',
     status: 'paid',
     plan: 'Starter',
@@ -133,12 +133,12 @@ export default function BillingPage() {
   if (!permissions.canManageBilling) {
     return (
       <div className="space-y-6">
-        <Header title="Billing &amp; Plans" subtitle="Access denied" />
+        <Header title="Billing & Plans" subtitle="Access denied" />
         <Card>
           <CardContent className="flex items-center justify-center h-64">
             <div className="text-center">
               <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">You don&apos;t have permission to manage billing.</p>
+              <p className="text-muted-foreground">You don't have permission to manage billing.</p>
             </div>
           </CardContent>
         </Card>
@@ -159,7 +159,7 @@ export default function BillingPage() {
   return (
     <div className="space-y-6">
       <Header 
-        title="Billing &amp; Plans"
+        title="Billing & Plans" 
         subtitle="Manage your subscription and billing information"
       />
       
@@ -167,7 +167,7 @@ export default function BillingPage() {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="current">Current Plan</TabsTrigger>
           <TabsTrigger value="plans">Upgrade Plans</TabsTrigger>
-          <TabsTrigger value="usage">Usage &amp; Limits</TabsTrigger>
+          <TabsTrigger value="usage">Usage & Limits</TabsTrigger>
           <TabsTrigger value="invoices">Billing History</TabsTrigger>
         </TabsList>
 
@@ -196,7 +196,7 @@ export default function BillingPage() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Next billing date</span>
                       <span className="font-medium">
-                        {new Date(currentPlan.nextBilling).toLocaleDateString()}
+                        {currentPlan.nextBilling.toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
@@ -317,10 +317,10 @@ export default function BillingPage() {
                       {currentPlan.usage.apiCalls.used.toLocaleString()} / {currentPlan.usage.apiCalls.limit.toLocaleString()}
                     </span>
                   </div>
-                  {/* <Progress 
+                  <Progress 
                     value={getUsagePercentage(currentPlan.usage.apiCalls.used, currentPlan.usage.apiCalls.limit)} 
                     className="h-2"
-                  /> */}
+                  />
                   <p className="text-xs text-muted-foreground">
                     {Math.round(getUsagePercentage(currentPlan.usage.apiCalls.used, currentPlan.usage.apiCalls.limit))}% used
                   </p>
@@ -343,10 +343,10 @@ export default function BillingPage() {
                       {currentPlan.usage.integrations.used} / {currentPlan.usage.integrations.limit}
                     </span>
                   </div>
-                  {/* <Progress 
+                  <Progress 
                     value={getUsagePercentage(currentPlan.usage.integrations.used, currentPlan.usage.integrations.limit)} 
                     className="h-2"
-                  /> */}
+                  />
                   <p className="text-xs text-muted-foreground">
                     {Math.round(getUsagePercentage(currentPlan.usage.integrations.used, currentPlan.usage.integrations.limit))}% used
                   </p>
@@ -369,10 +369,10 @@ export default function BillingPage() {
                       {currentPlan.usage.users.used} / {currentPlan.usage.users.limit}
                     </span>
                   </div>
-                  {/* <Progress 
+                  <Progress 
                     value={getUsagePercentage(currentPlan.usage.users.used, currentPlan.usage.users.limit)} 
                     className="h-2"
-                  /> */}
+                  />
                   <p className="text-xs text-muted-foreground">
                     {Math.round(getUsagePercentage(currentPlan.usage.users.used, currentPlan.usage.users.limit))}% used
                   </p>
@@ -395,10 +395,10 @@ export default function BillingPage() {
                       {currentPlan.usage.storage.used} GB / {currentPlan.usage.storage.limit} GB
                     </span>
                   </div>
-                  {/* <Progress 
+                  <Progress 
                     value={getUsagePercentage(currentPlan.usage.storage.used, currentPlan.usage.storage.limit)} 
                     className="h-2"
-                  /> */}
+                  />
                   <p className="text-xs text-muted-foreground">
                     {Math.round(getUsagePercentage(currentPlan.usage.storage.used, currentPlan.usage.storage.limit))}% used
                   </p>
@@ -427,7 +427,7 @@ export default function BillingPage() {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {new Date(invoice.date).toLocaleDateString()}
+                          {invoice.date.toLocaleDateString()}
                         </span>
                         <span>{invoice.plan} Plan</span>
                       </div>
