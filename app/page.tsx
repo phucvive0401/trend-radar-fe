@@ -29,7 +29,7 @@ import {
   Zap
 } from 'lucide-react';
 
-import { toast } from 'sonner'; // Notification
+import { toast } from 'sonner';
 
 import dynamic from 'next/dynamic';
 const ImportModal = dynamic(() => import('@/components/ImportModal'), { ssr: false });
@@ -168,34 +168,27 @@ export default function Dashboard() {
     }, 2000);
   };
 
-  // 2. Export Report handler
   const handleExport = async () => {
     setIsExporting(true);
-    // Simulate file export (PDF/Excel)
     await new Promise((res) => setTimeout(res, 1600));
     setIsExporting(false);
     toast.success('Report exported!');
   };
 
-  // 3. Share Dashboard
   const handleShare = () => {
-    // Example: Copy URL to clipboard
     navigator.clipboard.writeText(window.location.href);
     toast.success('Dashboard link copied!');
   };
 
-  // 4. Schedule Report
   const handleSchedule = () => {
     toast.info('Report scheduling is coming soon!');
   };
 
-  // 5. Set Alerts
   const handleAlerts = () => {
     toast.info('Custom alerts setup is coming soon!');
   };
 
   useEffect(() => {
-    // Auto-refresh every 5 minutes
     const interval = setInterval(() => {
       setLastUpdated(new Date());
     }, 5 * 60 * 1000);
@@ -591,28 +584,28 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-            <Button variant="outline" className="justify-start gap-3 h-12">
+            <Button variant="outline" className="justify-start gap-3 h-12" onClick={handleShare}>
               <Share2 className="h-4 w-4" />
               <div className="text-left">
                 <div className="font-medium">Share Dashboard</div>
                 <div className="text-xs text-muted-foreground">Export current view</div>
               </div>
             </Button>
-            <Button variant="outline" className="justify-start gap-3 h-12">
+            <Button variant="outline" className="justify-start gap-3 h-12" onClick={handleExport}>
               <Download className="h-4 w-4" />
               <div className="text-left">
                 <div className="font-medium">Export Report</div>
                 <div className="text-xs text-muted-foreground">PDF, Excel, PowerPoint</div>
               </div>
             </Button>
-            <Button variant="outline" className="justify-start gap-3 h-12">
+            <Button variant="outline" className="justify-start gap-3 h-12" onClick={handleSchedule}>
               <Calendar className="h-4 w-4" />
               <div className="text-left">
                 <div className="font-medium">Schedule Report</div>
                 <div className="text-xs text-muted-foreground">Automated delivery</div>
               </div>
             </Button>
-            <Button variant="outline" className="justify-start gap-3 h-12">
+            <Button variant="outline" className="justify-start gap-3 h-12" onClick={handleAlerts}>
               <Target className="h-4 w-4" />
               <div className="text-left">
                 <div className="font-medium">Set Alerts</div>
@@ -622,6 +615,10 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {showImportModal && (
+        <ImportModal open={showImportModal} onClose={() => setShowImportModal(false)} />
+      )}
     </div>
   );
 }

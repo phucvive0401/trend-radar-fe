@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Toaster } from '@/components/ui/sonner';
 import { useState } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -27,7 +28,7 @@ function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Analytics Pro</CardTitle>
+          <CardTitle className="text-2xl text-center">TrendRadar Hub</CardTitle>
           <p className="text-muted-foreground text-center">Sign in to your account</p>
         </CardHeader>
         <CardContent>
@@ -87,6 +88,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+      <Toaster />
     </div>
   );
 }
